@@ -1,0 +1,11 @@
+App\Entity\LocalNames:
+  attributes:
+    id:
+      groups: ['localNames:read', 'tree:read']
+    language:
+      groups: ['localNames:read', 'tree:read']
+    localName:
+      groups: ['localNames:read', 'tree:read']
+    
+    tree:
+      groups: ['localNames:read']

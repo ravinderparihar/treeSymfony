@@ -1,0 +1,10 @@
+App\Entity\Images:
+  attributes:
+    id:
+      groups: ['images:read', 'tree:read']
+    imageType:
+      groups: ['images:read', 'tree:read']
+    imageUrl:
+      groups: ['images:read', 'tree:read']
+    tree:
+      groups: ['images:read']

@@ -1,0 +1,11 @@
+App\Entity\Tree:
+  normalizationContext:
+    groups: ['tree:read']
+  denormalizationContext:
+    groups: ['treeInput:write']
+  operations:
+    ApiPlatform\Metadata\GetCollection: ~
+    ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\Post:
+      input: App\Dto\TreeInput
+      processor: App\State\TreeProcessor

@@ -1,0 +1,36 @@
+App\Entity\Tree:
+  attributes:
+    id:
+      groups: ['tree:read', 'localNames:read', 'images:read']
+    scientificName:
+      groups: ['tree:read', 'localNames:read', 'images:read']
+    description:
+      groups: ['tree:read', 'localNames:read', 'images:read']
+    lifespanMin: 
+      groups: ['tree:read']
+    lifespanMax: 
+      groups: ['tree:read']
+    heightMin: 
+      groups: ['tree:read']
+    heightMax: 
+      groups: ['tree:read']
+    familyName: 
+      groups: ['tree:read']
+    genus: 
+      groups: ['tree:read']
+    species: 
+      groups: ['tree:read']
+    growthRate: 
+      groups: ['tree:read']
+    status: 
+      groups: ['tree:read']
+    localNames:
+      groups: ['tree:read']
+      readableLink: true
+    images:
+      groups: ['tree:read']
+      readableLink: true
+    uses:
+      groups: ['tree:read']
+      readableLink: true
+  

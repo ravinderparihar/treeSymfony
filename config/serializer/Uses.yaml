@@ -1,0 +1,12 @@
+App\Entity\Uses:
+  attributes:
+    id:
+      groups: ['uses:read', 'tree:read']
+    title:
+      groups: ['uses:read', 'tree:read']
+    description:
+      groups: ['uses:read', 'tree:read']
+    status:
+      groups: ['uses:read', 'tree:read']
+    tree:
+      groups: ['images:read']

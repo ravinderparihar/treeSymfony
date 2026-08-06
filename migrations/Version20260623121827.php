@@ -1,0 +1,93 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DoctrineMigrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20260623121827 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE TABLE favorites (id INT AUTO_INCREMENT NOT NULL, user_id INT DEFAULT NULL, INDEX IDX_E46960F5A76ED395 (user_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE favorites_tree (favorites_id INT NOT NULL, tree_id INT NOT NULL, INDEX IDX_2CFDC0AE84DDC6B4 (favorites_id), INDEX IDX_2CFDC0AE78B64A2 (tree_id), PRIMARY KEY (favorites_id, tree_id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE regions (id INT AUTO_INCREMENT NOT NULL, country VARCHAR(255) DEFAULT NULL, state VARCHAR(255) DEFAULT NULL, district VARCHAR(255) DEFAULT NULL, latitude NUMERIC(10, 7) DEFAULT NULL, longitude NUMERIC(10, 7) DEFAULT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_attributes (id INT AUTO_INCREMENT NOT NULL, attribute_name VARCHAR(255) DEFAULT NULL, attribute_value LONGTEXT DEFAULT NULL, tree_id INT DEFAULT NULL, INDEX IDX_CA88667178B64A2 (tree_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_climates (id INT AUTO_INCREMENT NOT NULL, temperature_min NUMERIC(5, 2) DEFAULT NULL, temperature_max NUMERIC(5, 2) DEFAULT NULL, rainfall_min INT DEFAULT NULL, rainfall_max INT DEFAULT NULL, humidity_min INT DEFAULT NULL, humidity_max INT DEFAULT NULL, soil_type VARCHAR(255) DEFAULT NULL, soil_ph_min NUMERIC(3, 1) DEFAULT NULL, soil_ph_max NUMERIC(3, 1) DEFAULT NULL, tree_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_5B21B73B78B64A2 (tree_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_disease_map (id INT AUTO_INCREMENT NOT NULL, tree_id INT DEFAULT NULL, disease_id INT DEFAULT NULL, INDEX IDX_8E86A51378B64A2 (tree_id), INDEX IDX_8E86A513D8355341 (disease_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_diseases (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, symptoms LONGTEXT DEFAULT NULL, treatment LONGTEXT DEFAULT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_regions (id INT AUTO_INCREMENT NOT NULL, abundance VARCHAR(255) NOT NULL, tree_id INT DEFAULT NULL, region_id INT DEFAULT NULL, INDEX IDX_68E0DBEE78B64A2 (tree_id), INDEX IDX_68E0DBEE98260155 (region_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_usages (id INT AUTO_INCREMENT NOT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_usages_user (tree_usages_id INT NOT NULL, user_id INT NOT NULL, INDEX IDX_5DEA238F303EF3C6 (tree_usages_id), INDEX IDX_5DEA238FA76ED395 (user_id), PRIMARY KEY (tree_usages_id, user_id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE tree_usages_tree (tree_usages_id INT NOT NULL, tree_id INT NOT NULL, INDEX IDX_6747AB1A303EF3C6 (tree_usages_id), INDEX IDX_6747AB1A78B64A2 (tree_id), PRIMARY KEY (tree_usages_id, tree_id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('ALTER TABLE favorites ADD CONSTRAINT FK_E46960F5A76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
+        $this->addSql('ALTER TABLE favorites_tree ADD CONSTRAINT FK_2CFDC0AE84DDC6B4 FOREIGN KEY (favorites_id) REFERENCES favorites (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE favorites_tree ADD CONSTRAINT FK_2CFDC0AE78B64A2 FOREIGN KEY (tree_id) REFERENCES tree (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE tree_attributes ADD CONSTRAINT FK_CA88667178B64A2 FOREIGN KEY (tree_id) REFERENCES tree (id)');
+        $this->addSql('ALTER TABLE tree_climates ADD CONSTRAINT FK_5B21B73B78B64A2 FOREIGN KEY (tree_id) REFERENCES tree (id)');
+        $this->addSql('ALTER TABLE tree_disease_map ADD CONSTRAINT FK_8E86A51378B64A2 FOREIGN KEY (tree_id) REFERENCES tree (id)');
+        $this->addSql('ALTER TABLE tree_disease_map ADD CONSTRAINT FK_8E86A513D8355341 FOREIGN KEY (disease_id) REFERENCES tree_diseases (id)');
+        $this->addSql('ALTER TABLE tree_regions ADD CONSTRAINT FK_68E0DBEE78B64A2 FOREIGN KEY (tree_id) REFERENCES tree (id)');
+        $this->addSql('ALTER TABLE tree_regions ADD CONSTRAINT FK_68E0DBEE98260155 FOREIGN KEY (region_id) REFERENCES tree_regions (id)');
+        $this->addSql('ALTER TABLE tree_usages_user ADD CONSTRAINT FK_5DEA238F303EF3C6 FOREIGN KEY (tree_usages_id) REFERENCES tree_usages (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE tree_usages_user ADD CONSTRAINT FK_5DEA238FA76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE tree_usages_tree ADD CONSTRAINT FK_6747AB1A303EF3C6 FOREIGN KEY (tree_usages_id) REFERENCES tree_usages (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE tree_usages_tree ADD CONSTRAINT FK_6747AB1A78B64A2 FOREIGN KEY (tree_id) REFERENCES tree (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE comments ADD CONSTRAINT FK_5F9E962AC746B832 FOREIGN KEY (tree_id_id) REFERENCES tree (id)');
+        $this->addSql('ALTER TABLE comments ADD CONSTRAINT FK_5F9E962A9D86650F FOREIGN KEY (user_id_id) REFERENCES user (id)');
+        $this->addSql('ALTER TABLE likes ADD CONSTRAINT FK_49CA4E7DC746B832 FOREIGN KEY (tree_id_id) REFERENCES tree (id)');
+        $this->addSql('ALTER TABLE likes ADD CONSTRAINT FK_49CA4E7D9D86650F FOREIGN KEY (user_id_id) REFERENCES user (id)');
+        $this->addSql('ALTER TABLE tree ADD CONSTRAINT FK_B73E5EDC13FB61BA FOREIGN KEY (tree_images_id) REFERENCES tree_images (id)');
+        $this->addSql('ALTER TABLE tree_local_names ADD CONSTRAINT FK_9A29F62AC746B832 FOREIGN KEY (tree_id_id) REFERENCES tree (id)');
+        $this->addSql('DROP INDEX IDX_45178CE8C746B832 ON tree_uses');
+        $this->addSql('ALTER TABLE tree_uses DROP tree_id_id');
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE favorites DROP FOREIGN KEY FK_E46960F5A76ED395');
+        $this->addSql('ALTER TABLE favorites_tree DROP FOREIGN KEY FK_2CFDC0AE84DDC6B4');
+        $this->addSql('ALTER TABLE favorites_tree DROP FOREIGN KEY FK_2CFDC0AE78B64A2');
+        $this->addSql('ALTER TABLE tree_attributes DROP FOREIGN KEY FK_CA88667178B64A2');
+        $this->addSql('ALTER TABLE tree_climates DROP FOREIGN KEY FK_5B21B73B78B64A2');
+        $this->addSql('ALTER TABLE tree_disease_map DROP FOREIGN KEY FK_8E86A51378B64A2');
+        $this->addSql('ALTER TABLE tree_disease_map DROP FOREIGN KEY FK_8E86A513D8355341');
+        $this->addSql('ALTER TABLE tree_regions DROP FOREIGN KEY FK_68E0DBEE78B64A2');
+        $this->addSql('ALTER TABLE tree_regions DROP FOREIGN KEY FK_68E0DBEE98260155');
+        $this->addSql('ALTER TABLE tree_usages_user DROP FOREIGN KEY FK_5DEA238F303EF3C6');
+        $this->addSql('ALTER TABLE tree_usages_user DROP FOREIGN KEY FK_5DEA238FA76ED395');
+        $this->addSql('ALTER TABLE tree_usages_tree DROP FOREIGN KEY FK_6747AB1A303EF3C6');
+        $this->addSql('ALTER TABLE tree_usages_tree DROP FOREIGN KEY FK_6747AB1A78B64A2');
+        $this->addSql('DROP TABLE favorites');
+        $this->addSql('DROP TABLE favorites_tree');
+        $this->addSql('DROP TABLE regions');
+        $this->addSql('DROP TABLE tree_attributes');
+        $this->addSql('DROP TABLE tree_climates');
+        $this->addSql('DROP TABLE tree_disease_map');
+        $this->addSql('DROP TABLE tree_diseases');
+        $this->addSql('DROP TABLE tree_regions');
+        $this->addSql('DROP TABLE tree_usages');
+        $this->addSql('DROP TABLE tree_usages_user');
+        $this->addSql('DROP TABLE tree_usages_tree');
+        $this->addSql('ALTER TABLE comments DROP FOREIGN KEY FK_5F9E962AC746B832');
+        $this->addSql('ALTER TABLE comments DROP FOREIGN KEY FK_5F9E962A9D86650F');
+        $this->addSql('ALTER TABLE likes DROP FOREIGN KEY FK_49CA4E7DC746B832');
+        $this->addSql('ALTER TABLE likes DROP FOREIGN KEY FK_49CA4E7D9D86650F');
+        $this->addSql('ALTER TABLE tree DROP FOREIGN KEY FK_B73E5EDC13FB61BA');
+        $this->addSql('ALTER TABLE tree_local_names DROP FOREIGN KEY FK_9A29F62AC746B832');
+        $this->addSql('ALTER TABLE tree_uses ADD tree_id_id INT DEFAULT NULL');
+        $this->addSql('CREATE INDEX IDX_45178CE8C746B832 ON tree_uses (tree_id_id)');
+    }
+}

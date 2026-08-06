@@ -1,0 +1,7 @@
+App\Entity\Uses:
+  normalizationContext:
+    groups: ['uses:read']
+  operations:
+    ApiPlatform\Metadata\GetCollection: ~
+    ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\Post: ~

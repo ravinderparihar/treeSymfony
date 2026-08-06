@@ -1,0 +1,30 @@
+App\Dto\TreeInput:
+    attributes:
+        scientificName: 
+            groups: ['treeInput:write']
+        description: 
+            groups: ['treeInput:write']
+        lifespanMin: 
+            groups: ['treeInput:write']
+        lifespanMax: 
+            groups: ['treeInput:write']
+        heightMin: 
+            groups: ['treeInput:write']
+        heightMax: 
+            groups: ['treeInput:write']
+        familyName: 
+            groups: ['treeInput:write']
+        genus: 
+            groups: ['treeInput:write']
+        species: 
+            groups: ['treeInput:write']
+        growthRate: 
+            groups: ['treeInput:write']
+        status: 
+            groups: ['treeInput:write']
+        localNames: 
+            groups: ['treeInput:write']
+        images: 
+            groups: ['treeInput:write']
+        uses: 
+            groups: ['treeInput:write']

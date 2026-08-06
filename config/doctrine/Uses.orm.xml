@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+        <entity name="App\Entity\Uses" table="uses">
+
+                <id name="id" type="integer" column="id">
+                        <generator strategy="AUTO"/>
+                </id>
+
+                <field name="title" column="title" type="string" length="100" nullable="true"/>
+                <field name="description" column="description" type="text" nullable="true"/>
+                <field name="status" column="status" type="boolean"/>
+
+                <many-to-one field="tree" target-entity="App\Entity\Tree" inversed-by="uses">
+                        <join-column name="treeId" referenced-column-name="id" nullable="true"/>
+                </many-to-one>
+        </entity>
+
+</doctrine-mapping>

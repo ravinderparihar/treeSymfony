@@ -1,0 +1,6 @@
+App\Entity\LocalNames:
+  normalizationContext:
+    groups: ['localNames:read']
+  operations:
+    ApiPlatform\Metadata\GetCollection: ~
+    ApiPlatform\Metadata\Get: ~

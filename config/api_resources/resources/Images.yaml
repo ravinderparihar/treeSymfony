@@ -1,0 +1,17 @@
+App\Entity\Images:
+    normalizationContext:
+        groups: ['images:read']
+    denormalizationContext:
+        groups: ['images:write']
+
+    operations:
+        ApiPlatform\Metadata\GetCollection: ~
+        ApiPlatform\Metadata\Get: ~
+
+        ApiPlatform\Metadata\Post:
+            controller: App\Controller\TreeImageController
+            deserialize: false
+            read: false
+            inputFormats:
+                multipart:
+                    - multipart/form-data
