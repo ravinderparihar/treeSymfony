@@ -9,30 +9,30 @@
         "ext-iconv": "*",
         "api-platform/doctrine-orm": "^4.3.17",
         "api-platform/symfony": "^4.3.17",
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-bundle": "^3.3.1",
         "doctrine/doctrine-migrations-bundle": "^4.0",
-        "doctrine/orm": "^3.6.7",
+        "doctrine/orm": "^3.6.8",
         "nelmio/cors-bundle": "^2.6.1",
         "phpdocumentor/reflection-docblock": "^6.0.3",
         "phpstan/phpdoc-parser": "^2.3.3",
-        "symfony/asset": "^7.3",
-        "symfony/config": "^7.3",
-        "symfony/console": "^7.3",
-        "symfony/dependency-injection": "^7.3",
-        "symfony/dotenv": "^7.3",
-        "symfony/expression-language": "^7.3",
+        "symfony/asset": "^7.4.8",
+        "symfony/config": "^7.4.15",
+        "symfony/console": "^7.4.15",
+        "symfony/dependency-injection": "^7.4.15",
+        "symfony/dotenv": "^7.4.15",
+        "symfony/expression-language": "^7.4.14",
         "symfony/flex": "^2.11",
-        "symfony/framework-bundle": "^7.3",
-        "symfony/lock": "^7.3",
-        "symfony/mime": "^7.3",
-        "symfony/property-access": "^7.3",
-        "symfony/property-info": "^7.3",
-        "symfony/runtime": "^7.3",
-        "symfony/security-bundle": "^7.3",
-        "symfony/serializer": "^7.3",
-        "symfony/twig-bundle": "^7.3",
-        "symfony/validator": "^7.3",
-        "symfony/yaml": "^7.3"
+        "symfony/framework-bundle": "^7.4.15",
+        "symfony/lock": "^7.4.14",
+        "symfony/mime": "^7.4.15",
+        "symfony/property-access": "^7.4.8",
+        "symfony/property-info": "^7.4.15",
+        "symfony/runtime": "^7.4.14",
+        "symfony/security-bundle": "^7.4.15",
+        "symfony/serializer": "^7.4.15",
+        "symfony/twig-bundle": "^7.4.15",
+        "symfony/validator": "^7.4.15",
+        "symfony/yaml": "^7.4.15"
     },
     "config": {
         "allow-plugins": {
@@ -45,8 +45,7 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/",
-             "Mahadev\\": "bundles/Mahadev/"
+            "App\\": "src/"
         }
     },
     "autoload-dev": {
@@ -88,10 +87,10 @@
         }
     },
     "require-dev": {
-        "symfony/debug-bundle": "^7.3",
+        "symfony/debug-bundle": "^7.4.8",
         "symfony/maker-bundle": "^1.67",
         "symfony/monolog-bundle": "^3.0|^4.0.2",
-        "symfony/stopwatch": "^7.3",
-        "symfony/web-profiler-bundle": "^7.3"
+        "symfony/stopwatch": "^7.4.8",
+        "symfony/web-profiler-bundle": "^7.4.15"
     }
 }
