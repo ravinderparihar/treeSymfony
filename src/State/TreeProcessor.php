@@ -12,11 +12,13 @@ use App\Entity\Tree;
 use App\Entity\Images;
 use App\Entity\Uses;
 use App\Entity\LocalNames;
+use App\Entity\Category;
 use Doctrine\ORM\EntityManagerInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 
 class TreeProcessor implements ProcessorInterface
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(private EntityManagerInterface $em,  private IriConverterInterface $iriConverter) {}
 
     /** @var TreeInput $data */
     public function process(
@@ -62,6 +64,14 @@ class TreeProcessor implements ProcessorInterface
         }
 
        
+       // $data->categories abhi bhi IRI strings hain,
+        // isliye har ek ko manually resolve karna hai actual Category entity mein.
+        foreach ($data->categories as $categoryIri) {
+            /** @var Category $category */
+            $category = $this->iriConverter->getResourceFromIri($categoryIri);
+            $tree->addCategory($category);
+        }
+
         /** @var UsesInput $item */
         foreach ($data->uses as $item) {
             $use = new Uses();

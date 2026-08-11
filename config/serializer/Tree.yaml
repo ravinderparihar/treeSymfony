@@ -33,4 +33,7 @@ App\Entity\Tree:
     uses:
       groups: ['tree:read']
       readableLink: true
+    categories:
+      groups: ['tree:read']
+      readableLink: true
   

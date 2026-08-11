@@ -28,3 +28,5 @@ App\Dto\TreeInput:
             groups: ['treeInput:write']
         uses: 
             groups: ['treeInput:write']
+        categories: 
+            groups: ['treeInput:write']

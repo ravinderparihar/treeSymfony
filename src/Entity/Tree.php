@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\LocalNames;
 use App\Entity\Images;
+use App\Entity\Category;
 
 
 class Tree
@@ -25,12 +26,19 @@ class Tree
     public Collection $images;
     public Collection $localNames;
     public Collection $uses;
+    /**
+     * @var Collection|Category[]
+     */
+    private $categories;
+
+
 
     public function __construct()
     {
         $this->images = new ArrayCollection();
         $this->localNames = new ArrayCollection();
         $this->uses = new ArrayCollection();
+        $this->categories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -224,7 +232,7 @@ class Tree
     }
 
 
-      /**
+    /**
      * @return Collection<int, Uses>
      */
     public function getUses(): Collection
@@ -251,5 +259,32 @@ class Tree
         }
         return $this;
     }
-}
 
+    /**
+     * @return Collection|Category[]
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): self
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories[] = $category;
+            $category->addTree($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): self
+    {
+        if ($this->categories->contains($category)) {
+            $this->categories->removeElement($category);
+            $category->removeTree($this);
+        }
+
+        return $this;
+    }
+}

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Dto;
+use ApiPlatform\Metadata\ApiProperty;
 
 class TreeInput
 {
@@ -30,4 +31,14 @@ class TreeInput
      * @var UsesInput[]
      */
     public array $uses = [];
+    
+    /**
+     * Ye ab plain IRI strings ka array hai, Category objects nahi.
+     * e.g. ["/api/categories/2", "/api/categories/5"]
+     *
+     * Processor mein IriConverter se manually resolve karenge.
+     *
+     * @var string[]
+     */
+    public array $categories = [];
 }

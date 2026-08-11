@@ -1,0 +1,9 @@
+App\Entity\Category:
+  normalizationContext:
+    groups: ['category:read']
+  denormalizationContext:
+    groups: ['category:write']
+  operations:
+    ApiPlatform\Metadata\GetCollection: ~
+    ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\Post: ~
