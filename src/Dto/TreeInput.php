@@ -22,7 +22,7 @@ class TreeInput
     public array $localNames = [];
 
     /**
-     * @var ImageInput[]
+     * @var String[]
      */
     public array $images = [];
     

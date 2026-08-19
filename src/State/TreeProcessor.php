@@ -5,7 +5,6 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\TreeInput;
-use App\Dto\ImageInput;
 use App\Dto\LocalNameInput;
 use App\Dto\UsesInput;
 use App\Dto\TreeUpdateInput;
@@ -30,11 +29,11 @@ class TreeProcessor implements ProcessorInterface
         array $context = []
     ): mixed {
 
-          // Update path: TreeUpdateInput aata hai PATCH request se
+        // Update path: TreeUpdateInput aata hai PATCH request se
         if ($data instanceof TreeUpdateInput) {
             return $this->updateTree($data, $uriVariables);
         }
-       return $this->addTree($data);
+        return $this->addTree($data);
     }
 
     public function addTree(mixed $data)
@@ -65,13 +64,8 @@ class TreeProcessor implements ProcessorInterface
         }
 
 
-        /** @var ImageInput $item */
-        foreach ($data->images as $item) {
-            $image = new Images();
-            $image->setTree($tree);
-            $image->setImageUrl($item->imageUrl);
-            $image->setImageType($item->imageType);
-            $tree->addImage($image);
+        if ($data->images !== null) {
+            $this->assignImages($tree, $data->images);
         }
 
 
@@ -97,12 +91,12 @@ class TreeProcessor implements ProcessorInterface
         return $tree;
     }
 
-     private function updateTree(TreeUpdateInput $data, array $uriVariables): Tree
+    private function updateTree(TreeUpdateInput $data, array $uriVariables): Tree
     {
         $tree = $this->em
             ->getRepository(Tree::class)
             ->find($uriVariables['id']);
- 
+
         if (!$tree) {
             throw new NotFoundHttpException('Tree not found.');
         }
@@ -110,7 +104,7 @@ class TreeProcessor implements ProcessorInterface
         if ($data->scientificName !== null) {
             $tree->setScientificName($data->scientificName);
         }
- 
+
         if ($data->description !== null) {
             $tree->setDescription($data->description);
         }
@@ -151,18 +145,11 @@ class TreeProcessor implements ProcessorInterface
             $tree->setStatus($data->status);
         }
 
-        
- 
-        // Categories sirf tab touch hongi jab request mein bheji gayi hon.
-        // Ye ADD/MERGE karta hai - purani categories nahi hatata,
-        // naye IRIs ko existing collection mein add kar deta hai.
-        // (addCategory() already duplicate-check karta hai, isliye
-        // dobara same IRI bhejne se bhi 2 baar add nahi hoga.)
         if ($data->categories !== null) {
             $this->assignCategories($tree, $data->categories);
         }
-        
-          /** @var UsesInput $item */
+
+        /** @var UsesInput $item */
         foreach ($data->uses as $item) {
             $use = new Uses();
             $use->setTree($tree);
@@ -172,7 +159,7 @@ class TreeProcessor implements ProcessorInterface
             $tree->addUses($use);
         }
 
-         /** @var LocalNameInput $item */
+        /** @var LocalNameInput $item */
         foreach ($data->localNames as $item) {
             $name = new LocalNames();
             $name->setTree($tree);
@@ -181,23 +168,29 @@ class TreeProcessor implements ProcessorInterface
             $tree->addLocalName($name);
         }
 
-
-        /** @var ImageInput $item */
-        foreach ($data->images as $item) {
-            $image = new Images();
-            $image->setTree($tree);
-            $image->setImageUrl($item->imageUrl);
-            $image->setImageType($item->imageType);
-            $tree->addImage($image);
+        if ($data->images !== null) {
+            $this->assignImages($tree, $data->images);
         }
-
-          
- 
         $this->em->flush();
- 
         return $tree;
     }
- 
+
+    private function assignImages(Tree $tree, array $imageIds): void
+    {
+        foreach ($imageIds as $imageId) {
+            $image = $this->em->getRepository(Images::class)->find($imageId);
+
+            if (!$image) {
+                throw new \InvalidArgumentException(
+                    sprintf('Image with ID "%s" not found.', $imageId)
+                );
+            }
+
+            $image->setTree($tree);
+            $tree->addImage($image);
+        }
+    }
+
     /**
      * IRI strings (e.g. "/api/categories/2") se Category entities resolve
      * karke Tree mein assign karta hai.
@@ -206,28 +199,28 @@ class TreeProcessor implements ProcessorInterface
     {
         foreach ($categoryIris as $categoryIri) {
             $categoryId = $this->extractIdFromIri($categoryIri);
- 
+
             $category = $this->em
                 ->getRepository(Category::class)
                 ->find($categoryId);
- 
+
             if (!$category) {
                 throw new \InvalidArgumentException(
                     sprintf('Category with IRI "%s" not found.', $categoryIri)
                 );
             }
- 
+
             $tree->addCategory($category);
         }
     }
- 
+
     /**
      * "/api/categories/2" se sirf "2" nikal deta hai.
      */
     private function extractIdFromIri(string $iri): string
     {
         $parts = explode('/', rtrim($iri, '/'));
- 
+
         return end($parts);
     }
 }
