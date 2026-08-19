@@ -6,9 +6,11 @@ App\Entity\Tree:
   operations:
     ApiPlatform\Metadata\GetCollection: ~
     ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\Delete: ~
     ApiPlatform\Metadata\Post:
       input: App\Dto\TreeInput
       processor: App\State\TreeProcessor
     ApiPlatform\Metadata\Patch:
       input: App\Dto\TreeUpdateInput
       processor: App\State\TreeProcessor
+    

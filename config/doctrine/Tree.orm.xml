@@ -34,18 +34,21 @@
         <one-to-many field="localNames" target-entity="App\Entity\LocalNames" mapped-by="tree" orphan-removal="false">
             <cascade>
                 <cascade-persist/>
+                <cascade-remove/>
             </cascade>
         </one-to-many>
 
         <one-to-many field="images" target-entity="App\Entity\Images" mapped-by="tree" orphan-removal="false">
             <cascade>
                 <cascade-persist/>
+                <cascade-remove/>
             </cascade>
         </one-to-many>
 
         <one-to-many field="uses" target-entity="App\Entity\Uses" mapped-by="tree" orphan-removal="false">
             <cascade>
                 <cascade-persist/>
+                <cascade-remove/>
             </cascade>
         </one-to-many>
 

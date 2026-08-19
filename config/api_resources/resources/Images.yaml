@@ -7,7 +7,7 @@ App\Entity\Images:
     operations:
         ApiPlatform\Metadata\GetCollection: ~
         ApiPlatform\Metadata\Get: ~
-
+        ApiPlatform\Metadata\Delete: ~
         ApiPlatform\Metadata\Post:
             controller: App\Controller\TreeImageController
             deserialize: false
