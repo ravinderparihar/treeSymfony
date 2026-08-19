@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Tree;
 use App\Entity\Images;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,9 +16,6 @@ class TreeImageController extends AbstractController
 
     public function __invoke(Request $request, EntityManagerInterface $entityManager, ParameterBagInterface $params): JsonResponse
     {
-
-
-        $treeId = $request->request->get('tree');
         $imageType = $request->request->get('imageType');
         $file = $request->files->get('file');
 
@@ -29,13 +25,7 @@ class TreeImageController extends AbstractController
             ], 400);
         }
 
-        $tree = $entityManager->getRepository(Tree::class)->find($treeId);
-
-        if (!$tree) {
-            return $this->json([
-                'message' => 'Tree not found.'
-            ], 404);
-        }
+       
 
         $filename = uniqid() . '.' . $file->guessExtension();
 
@@ -45,7 +35,6 @@ class TreeImageController extends AbstractController
         );
 
         $treeImage = new Images();
-        $treeImage->setTree($tree);
         $treeImage->setImageType($imageType);
         $treeImage->setImageUrl('/uploads/tree/' . $filename);
 

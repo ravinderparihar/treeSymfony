@@ -23,8 +23,6 @@ class Category
         $this->trees = new ArrayCollection();
     }
 
-
-
     public function getId(): ?int
     {
         return $this->id;

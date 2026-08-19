@@ -1,10 +1,11 @@
 <?php
-
+ 
 namespace App\Dto;
-
-class TreeInput
+ 
+class TreeUpdateInput
 {
-    public ?string $scientificName = null;
+    
+   public ?string $scientificName = null;
     public ?string $description = null;
     public ?string $lifespanMin = null;
     public ?string $lifespanMax = null;
@@ -31,5 +32,7 @@ class TreeInput
      */
     public array $uses = [];
     
+    
     public array $categories = [];
 }
+ 

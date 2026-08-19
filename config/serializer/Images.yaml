@@ -6,5 +6,5 @@ App\Entity\Images:
       groups: ['images:read', 'tree:read']
     imageUrl:
       groups: ['images:read', 'tree:read']
-    tree:
-      groups: ['images:read']
+    # tree:
+    #   groups: ['images:read']

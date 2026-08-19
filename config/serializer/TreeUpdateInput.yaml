@@ -1,0 +1,32 @@
+App\Dto\TreeUpdateInput:
+    attributes:
+        scientificName: 
+            groups: ['treeUpdateInput:write']
+        description: 
+            groups: ['treeUpdateInput:write']
+        lifespanMin: 
+            groups: ['treeUpdateInput:write']
+        lifespanMax: 
+            groups: ['treeUpdateInput:write']
+        heightMin: 
+            groups: ['treeUpdateInput:write']
+        heightMax: 
+            groups: ['treeUpdateInput:write']
+        familyName: 
+            groups: ['treeUpdateInput:write']
+        genus: 
+            groups: ['treeUpdateInput:write']
+        species: 
+            groups: ['treeUpdateInput:write']
+        growthRate: 
+            groups: ['treeUpdateInput:write']
+        status: 
+            groups: ['treeUpdateInput:write']
+        localNames: 
+            groups: ['treeUpdateInput:write']
+        images: 
+            groups: ['treeUpdateInput:write']
+        uses: 
+            groups: ['treeUpdateInput:write']
+        categories: 
+            groups: ['treeUpdateInput:write']
