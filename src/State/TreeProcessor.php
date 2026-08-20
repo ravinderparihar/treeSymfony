@@ -151,6 +151,10 @@ class TreeProcessor implements ProcessorInterface
 
         /** @var UsesInput $item */
         foreach ($data->uses as $item) {
+            if ($this->treeHasUse($tree, $item)) {
+                continue;
+            }
+
             $use = new Uses();
             $use->setTree($tree);
             $use->setTitle($item->title);
@@ -161,6 +165,10 @@ class TreeProcessor implements ProcessorInterface
 
         /** @var LocalNameInput $item */
         foreach ($data->localNames as $item) {
+            if ($this->treeHasLocalName($tree, $item)) {
+                continue;
+            }
+
             $name = new LocalNames();
             $name->setTree($tree);
             $name->setLocalName($item->localName);
@@ -173,6 +181,34 @@ class TreeProcessor implements ProcessorInterface
         }
         $this->em->flush();
         return $tree;
+    }
+
+    private function treeHasUse(Tree $tree, UsesInput $input): bool
+    {
+        foreach ($tree->getUses() as $use) {
+            if (
+                $use->getTitle() === $input->title
+                && $use->getDescription() === $input->description
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function treeHasLocalName(Tree $tree, LocalNameInput $input): bool
+    {
+        foreach ($tree->getLocalNames() as $localName) {
+            if (
+                $localName->getLocalName() === $input->localName
+                && $localName->getLanguage() === $input->language
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function assignImages(Tree $tree, array $imageIds): void
