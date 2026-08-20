@@ -24,6 +24,52 @@ App\Entity\Tree:
       groups: ['tree:read']
     status: 
       groups: ['tree:read']
+    temperatureRange:
+      groups: ['tree:read']
+    rainfallRequirement:
+      groups: ['tree:read']
+    waterRequirement:
+      groups: ['tree:read']
+    humidity:
+      groups: ['tree:read']
+    altitudeRange:
+      groups: ['tree:read']
+    sandySoil:
+      groups: ['tree:read']
+    claySoil:
+      groups: ['tree:read']
+    loamySoil:
+      groups: ['tree:read']
+    soilPh:
+      groups: ['tree:read']
+    leafType:
+      groups: ['tree:read']
+    floweringSeason:
+      groups: ['tree:read']
+    harvestTime:
+      groups: ['tree:read']
+    productionPerTree:
+      groups: ['tree:read']
+    seedTreatment:
+      groups: ['tree:read']
+    nurseryMethod:
+      groups: ['tree:read']
+    plantingDistance:
+      groups: ['tree:read']
+    fertilizerSchedule:
+      groups: ['tree:read']
+    irrigationSchedule:
+      groups: ['tree:read']
+    pruningGuide:
+      groups: ['tree:read']
+    commonDiseases:
+      groups: ['tree:read']
+    commonInsects:
+      groups: ['tree:read']
+    symptoms:
+      groups: ['tree:read']
+    treatment:
+      groups: ['tree:read']
     localNames:
       groups: ['tree:read']
       readableLink: true
