@@ -31,6 +31,52 @@
 
         <field name="species" type="string" length="255" nullable="true"/>
 
+        <field name="temperatureRange" column="temperature_range" type="string" length="255" nullable="true"/>
+
+        <field name="rainfallRequirement" column="rainfall_requirement" type="string" length="255" nullable="true"/>
+
+        <field name="waterRequirement" column="water_requirement" type="string" length="255" nullable="true"/>
+
+        <field name="humidity" type="string" length="255" nullable="true"/>
+
+        <field name="altitudeRange" column="altitude_range" type="string" length="255" nullable="true"/>
+
+        <field name="sandySoil" column="sandy_soil" type="boolean" nullable="true"/>
+
+        <field name="claySoil" column="clay_soil" type="boolean" nullable="true"/>
+
+        <field name="loamySoil" column="loamy_soil" type="boolean" nullable="true"/>
+
+        <field name="soilPh" column="soil_ph" type="string" length="255" nullable="true"/>
+
+        <field name="leafType" column="leaf_type" type="string" length="255" nullable="true"/>
+
+        <field name="floweringSeason" column="flowering_season" type="string" length="255" nullable="true"/>
+
+        <field name="harvestTime" column="harvest_time" type="string" length="255" nullable="true"/>
+
+        <field name="productionPerTree" column="production_per_tree" type="string" length="255" nullable="true"/>
+
+        <field name="seedTreatment" column="seed_treatment" type="string" length="255" nullable="true"/>
+
+        <field name="nurseryMethod" column="nursery_method" type="string" length="255" nullable="true"/>
+
+        <field name="plantingDistance" column="planting_distance" type="string" length="255" nullable="true"/>
+
+        <field name="fertilizerSchedule" column="fertilizer_schedule" type="string" length="255" nullable="true"/>
+
+        <field name="irrigationSchedule" column="irrigation_schedule" type="string" length="255" nullable="true"/>
+
+        <field name="pruningGuide" column="pruning_guide" type="string" length="255" nullable="true"/>
+
+        <field name="commonDiseases" column="common_diseases" type="text" nullable="true"/>
+
+        <field name="commonInsects" column="common_insects" type="text" nullable="true"/>
+
+        <field name="symptoms" type="text" nullable="true"/>
+
+        <field name="treatment" type="text" nullable="true"/>
+
         <one-to-many field="localNames" target-entity="App\Entity\LocalNames" mapped-by="tree" orphan-removal="false">
             <cascade>
                 <cascade-persist/>

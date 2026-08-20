@@ -22,6 +22,52 @@ App\Dto\TreeInput:
             groups: ['treeInput:write']
         status: 
             groups: ['treeInput:write']
+        temperatureRange:
+            groups: ['treeInput:write']
+        rainfallRequirement:
+            groups: ['treeInput:write']
+        waterRequirement:
+            groups: ['treeInput:write']
+        humidity:
+            groups: ['treeInput:write']
+        altitudeRange:
+            groups: ['treeInput:write']
+        sandySoil:
+            groups: ['treeInput:write']
+        claySoil:
+            groups: ['treeInput:write']
+        loamySoil:
+            groups: ['treeInput:write']
+        soilPh:
+            groups: ['treeInput:write']
+        leafType:
+            groups: ['treeInput:write']
+        floweringSeason:
+            groups: ['treeInput:write']
+        harvestTime:
+            groups: ['treeInput:write']
+        productionPerTree:
+            groups: ['treeInput:write']
+        seedTreatment:
+            groups: ['treeInput:write']
+        nurseryMethod:
+            groups: ['treeInput:write']
+        plantingDistance:
+            groups: ['treeInput:write']
+        fertilizerSchedule:
+            groups: ['treeInput:write']
+        irrigationSchedule:
+            groups: ['treeInput:write']
+        pruningGuide:
+            groups: ['treeInput:write']
+        commonDiseases:
+            groups: ['treeInput:write']
+        commonInsects:
+            groups: ['treeInput:write']
+        symptoms:
+            groups: ['treeInput:write']
+        treatment:
+            groups: ['treeInput:write']
         localNames: 
             groups: ['treeInput:write']
         images: 

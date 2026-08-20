@@ -50,6 +50,7 @@ class TreeProcessor implements ProcessorInterface
         $tree->setSpecies($data->species);
         $tree->setStatus($data->status);
         $tree->setGrowthRate($data->growthRate);
+        $this->assignAdditionalDetails($tree, $data);
 
         $this->em->persist($tree);
 
@@ -145,6 +146,8 @@ class TreeProcessor implements ProcessorInterface
             $tree->setStatus($data->status);
         }
 
+        $this->assignAdditionalDetails($tree, $data, true);
+
         if ($data->categories !== null) {
             $this->assignCategories($tree, $data->categories);
         }
@@ -181,6 +184,23 @@ class TreeProcessor implements ProcessorInterface
         }
         $this->em->flush();
         return $tree;
+    }
+
+    private function assignAdditionalDetails(Tree $tree, mixed $data, bool $update = false): void
+    {
+        $fields = [
+            'temperatureRange', 'rainfallRequirement', 'waterRequirement', 'humidity',
+            'altitudeRange', 'sandySoil', 'claySoil', 'loamySoil', 'soilPh', 'leafType',
+            'floweringSeason', 'harvestTime', 'productionPerTree', 'seedTreatment',
+            'nurseryMethod', 'plantingDistance', 'fertilizerSchedule', 'irrigationSchedule',
+            'pruningGuide', 'commonDiseases', 'commonInsects', 'symptoms', 'treatment',
+        ];
+
+        foreach ($fields as $field) {
+            if (!$update || $data->{$field} !== null) {
+                $tree->{$field} = $data->{$field};
+            }
+        }
     }
 
     private function treeHasUse(Tree $tree, UsesInput $input): bool
