@@ -1,0 +1,72 @@
+App\Entity\User:
+  normalizationContext:
+    groups: ['user:read']
+  denormalizationContext:
+    groups: ['user:write']
+  operations:
+    ApiPlatform\Metadata\GetCollection:
+      normalizationContext:
+        groups: ['user:read']
+    ApiPlatform\Metadata\Get:
+      normalizationContext:
+        groups: ['user:read']
+    ApiPlatform\Metadata\Post:
+      input: App\Dto\UserInput
+      processor: App\State\UserProcessor
+    ApiPlatform\Metadata\Delete: ~
+    update_profile:
+      class: ApiPlatform\Metadata\Patch
+      uriTemplate: '/users/{id}'
+      uriVariables:
+        id:
+          fromClass: App\Entity\User
+          identifiers: ['id']
+      input: App\Dto\UserUpdateInput
+      denormalizationContext:
+        groups: ['user:update:write']
+      processor: App\State\UserProcessor
+    change_password:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/users/{id}/password'
+      uriVariables:
+        id:
+          fromClass: App\Entity\User
+          identifiers: ['id']
+      input: App\Dto\PasswordChangeInput
+      denormalizationContext:
+        groups: ['user:password:write']
+      output: false
+      processor: App\State\UserProcessor
+
+App\Dto\LoginInput:
+  operations:
+    login:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/login_check'
+      controller: App\Controller\LoginController
+      input: App\Dto\LoginInput
+      denormalizationContext:
+        groups: ['login:write']
+      output: false
+
+App\Dto\ForgotPasswordInput:
+  operations:
+    forgot_password:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/forgot-password'
+      controller: App\Controller\ForgotPasswordController
+      input: App\Dto\ForgotPasswordInput
+      denormalizationContext:
+        groups: ['password:forgot:write']
+      output: false
+
+App\Dto\ResetPasswordInput:
+  operations:
+    reset_password:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/reset-password'
+      controller: App\Controller\ResetPasswordController
+      input: App\Dto\ResetPasswordInput
+      denormalizationContext:
+        groups: ['password:reset:write']
+      output: false

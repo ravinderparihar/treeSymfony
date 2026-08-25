@@ -1,0 +1,8 @@
+App\Dto\LoginInput:
+  attributes:
+    email:
+      groups: ['login:write']
+    username:
+      groups: ['login:write']
+    password:
+      groups: ['login:write']

@@ -1,0 +1,54 @@
+App\Entity\User:
+  attributes:
+    id:
+      groups: ['user:read']
+    username:
+      groups: ['user:read']
+    name:
+      groups: ['user:read']
+    email:
+      groups: ['user:read']
+    roles:
+      groups: ['user:read']
+    profileImage:
+      groups: ['user:read']
+    status:
+      groups: ['user:read']
+    createdAt:
+      groups: ['user:read']
+    updatedAt:
+      groups: ['user:read']
+App\Dto\UserInput:
+  attributes:
+    username:
+      groups: ['user:write']
+    name:
+      groups: ['user:write']
+    email:
+      groups: ['user:write']
+    password:
+      groups: ['user:write']
+    profileImage:
+      groups: ['user:write']
+    status:
+      groups: ['user:write']
+
+App\Dto\PasswordChangeInput:
+  attributes:
+    currentPassword:
+      groups: ['user:password:write']
+    newPassword:
+      groups: ['user:password:write']
+
+App\Dto\UserUpdateInput:
+  attributes:
+    username:
+      groups: ['user:update:write']
+    name:
+      groups: ['user:update:write']
+    email:
+      groups: ['user:update:write']
+    profileImage:
+      groups: ['user:update:write']
+    status:
+      groups: ['user:update:write']
