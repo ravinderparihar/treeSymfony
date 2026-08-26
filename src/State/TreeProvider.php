@@ -12,6 +12,7 @@ use App\Entity\Tree;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
 
 final class TreeProvider implements ProviderInterface
 {
@@ -25,7 +26,29 @@ final class TreeProvider implements ProviderInterface
     {
         $repository = $this->entityManager->getRepository(Tree::class);
         if ($operation instanceof GetCollection) {
-            return array_map(fn (Tree $tree) => $this->enrich($tree), $repository->findAll());
+            $request = $context['request'] ?? null;
+            $scientificName = $request instanceof Request ? trim((string) $request->query->get('scientificName', '')) : '';
+            $localName = $request instanceof Request
+                ? trim((string) ($request->query->get('localName', $request->query->get('localNames', ''))))
+                : '';
+
+            $queryBuilder = $repository->createQueryBuilder('tree');
+            $searchConditions = [];
+            if ($scientificName !== '') {
+                $searchConditions[] = 'LOWER(tree.scientificName) LIKE LOWER(:scientificName)';
+                $queryBuilder->setParameter('scientificName', '%'.$scientificName.'%');
+            }
+            if ($localName !== '') {
+                $queryBuilder
+                    ->leftJoin('tree.localNames', 'localName')
+                    ->setParameter('localName', '%'.$localName.'%');
+                $searchConditions[] = 'LOWER(localName.localName) LIKE LOWER(:localName)';
+            }
+            if ($searchConditions !== []) {
+                $queryBuilder->andWhere(implode(' OR ', $searchConditions));
+            }
+
+            return array_map(fn (Tree $tree) => $this->enrich($tree), $queryBuilder->getQuery()->getResult());
         }
 
         $tree = $repository->find($uriVariables['id'] ?? null);
