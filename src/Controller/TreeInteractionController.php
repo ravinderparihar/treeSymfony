@@ -8,10 +8,10 @@ use App\Entity\Like;
 use App\Entity\Tree;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use ApiPlatform\Metadata\IriConverterInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\SecurityBundle\Security;
 
 final class TreeInteractionController
@@ -19,10 +19,10 @@ final class TreeInteractionController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Security $security,
+        private IriConverterInterface $iriConverter,
     ) {
     }
 
-    #[Route('/api/trees/{id}/like', methods: ['POST'])]
     public function like(int $id): JsonResponse
     {
         $user = $this->authenticatedUser();
@@ -44,7 +44,44 @@ final class TreeInteractionController
         return new JsonResponse(['treeId' => $id, 'liked' => $liked]);
     }
 
-    #[Route('/api/trees/{id}/favorite', methods: ['POST'])]
+    public function setLike(Request $request): JsonResponse
+    {
+        $payload = $this->payload($request);
+        $tree = $this->resource($payload['tree'] ?? null, Tree::class);
+        $user = $this->resource($payload['user'] ?? null, User::class);
+        $liked = $payload['liked'] ?? null;
+
+        if (!$tree || !$user || !is_bool($liked)) {
+            return new JsonResponse(['message' => 'tree, user, and liked boolean are required.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $repository = $this->entityManager->getRepository(Like::class);
+        $like = $repository->findOneBy(['tree' => $tree, 'user' => $user]);
+        if ($liked && !$like) {
+            $this->entityManager->persist((new Like())->setTree($tree)->setUser($user));
+        } elseif (!$liked && $like) {
+            $this->entityManager->remove($like);
+        }
+
+        $this->entityManager->flush();
+
+        return new JsonResponse(['liked' => $liked]);
+    }
+
+    public function dislike(int $id): JsonResponse
+    {
+        $user = $this->authenticatedUser();
+        $tree = $this->tree($id);
+        $like = $this->entityManager->getRepository(Like::class)->findOneBy(['tree' => $tree, 'user' => $user]);
+
+        if ($like) {
+            $this->entityManager->remove($like);
+            $this->entityManager->flush();
+        }
+
+        return new JsonResponse(['treeId' => $id, 'liked' => false]);
+    }
+
     public function addFavorite(int $id): JsonResponse
     {
         $user = $this->authenticatedUser();
@@ -55,10 +92,35 @@ final class TreeInteractionController
         $this->entityManager->persist($favorite);
         $this->entityManager->flush();
 
-        return new JsonResponse(['treeId' => $id, 'favorite' => true]);
+        return new JsonResponse(['treeId' => $id, 'favorited' => true]);
     }
 
-    #[Route('/api/trees/{id}/favorite', methods: ['DELETE'])]
+    public function setFavorite(Request $request): JsonResponse
+    {
+        $payload = $this->payload($request);
+        $tree = $this->resource($payload['tree'] ?? null, Tree::class);
+        $user = $this->resource($payload['user'] ?? null, User::class);
+        $favorited = $payload['favorited'] ?? null;
+
+        if (!$tree || !$user || !is_bool($favorited)) {
+            return new JsonResponse(['message' => 'tree, user, and favorited boolean are required.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $repository = $this->entityManager->getRepository(Favorite::class);
+        $favorite = $repository->findOneBy(['user' => $user]);
+        if ($favorited) {
+            $favorite ??= (new Favorite())->setUser($user);
+            $favorite->addTree($tree);
+            $this->entityManager->persist($favorite);
+        } elseif ($favorite) {
+            $favorite->removeTree($tree);
+        }
+
+        $this->entityManager->flush();
+
+        return new JsonResponse(['favorited' => $favorited]);
+    }
+
     public function removeFavorite(int $id): JsonResponse
     {
         $user = $this->authenticatedUser();
@@ -70,10 +132,9 @@ final class TreeInteractionController
             $this->entityManager->flush();
         }
 
-        return new JsonResponse(['treeId' => $id, 'favorite' => false]);
+        return new JsonResponse(['treeId' => $id, 'favorited' => false]);
     }
 
-    #[Route('/api/trees/{id}/comments', methods: ['POST'])]
     public function addComment(int $id, Request $request): JsonResponse
     {
         $user = $this->authenticatedUser();
@@ -92,7 +153,6 @@ final class TreeInteractionController
         return new JsonResponse($this->serializeComment($comment), Response::HTTP_CREATED);
     }
 
-    #[Route('/api/trees/{id}/comments', methods: ['GET'])]
     public function listComments(int $id): JsonResponse
     {
         $tree = $this->tree($id);
@@ -104,13 +164,15 @@ final class TreeInteractionController
         return new JsonResponse(array_map(fn (Comment $comment) => $this->serializeComment($comment), $comments));
     }
 
-    #[Route('/api/comments/{id}', methods: ['DELETE'])]
     public function removeComment(int $id): JsonResponse
     {
         $user = $this->authenticatedUser();
-        $comment = $this->entityManager->getRepository(Comment::class)->find($id);
+        $comment = $this->entityManager->getRepository(Comment::class)->findOneBy([
+            'id' => $id,
+            'user' => $user,
+        ]);
 
-        if (!$comment || $comment->getUser()->getId() !== $user->getId()) {
+        if (!$comment) {
             return new JsonResponse(['message' => 'Comment not found.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -128,6 +190,27 @@ final class TreeInteractionController
         }
 
         return $user;
+    }
+
+    private function payload(Request $request): array
+    {
+        $payload = json_decode($request->getContent(), true);
+        return is_array($payload) ? $payload : [];
+    }
+
+    private function resource(mixed $iri, string $class): object|null
+    {
+        if (!is_string($iri) || $iri === '') {
+            return null;
+        }
+
+        try {
+            $resource = $this->iriConverter->getResourceFromIri($iri);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $resource instanceof $class ? $resource : null;
     }
 
     private function tree(int $id): Tree

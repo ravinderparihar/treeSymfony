@@ -1,0 +1,14 @@
+App\Entity\Favorite:
+  normalizationContext:
+    groups: ['favorite:read']
+  denormalizationContext:
+    groups: ['favorite:write']
+  operations:
+    ApiPlatform\Metadata\GetCollection: ~
+    ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\Post:
+      controller: App\Controller\TreeInteractionController::setFavorite
+      read: false
+      deserialize: false
+      validate: false
+      write: false

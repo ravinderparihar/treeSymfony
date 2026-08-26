@@ -4,8 +4,10 @@ App\Entity\Tree:
   denormalizationContext:
     groups: ['treeInput:write', 'treeUpdateInput:write']
   operations:
-    ApiPlatform\Metadata\GetCollection: ~
-    ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\GetCollection:
+      provider: App\State\TreeProvider
+    ApiPlatform\Metadata\Get:
+      provider: App\State\TreeProvider
     ApiPlatform\Metadata\Delete: ~
     ApiPlatform\Metadata\Post:
       input: App\Dto\TreeInput
@@ -13,4 +15,47 @@ App\Entity\Tree:
     ApiPlatform\Metadata\Patch:
       input: App\Dto\TreeUpdateInput
       processor: App\State\TreeProcessor
+    like:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/trees/{id}/like'
+      controller: App\Controller\TreeInteractionController::like
+      read: false
+      deserialize: false
+      validate: false
+      write: false
+      output: false
+    add_favorite:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/trees/{id}/favorite'
+      controller: App\Controller\TreeInteractionController::addFavorite
+      read: false
+      deserialize: false
+      validate: false
+      write: false
+      output: false
+    add_comment:
+      class: ApiPlatform\Metadata\Post
+      uriTemplate: '/trees/{id}/comments'
+      controller: App\Controller\TreeInteractionController::addComment
+      read: false
+      deserialize: false
+      validate: false
+      write: false
+    list_comments:
+      class: ApiPlatform\Metadata\GetCollection
+      uriTemplate: '/trees/{id}/comments'
+      controller: App\Controller\TreeInteractionController::listComments
+      read: false
+      deserialize: false
+      validate: false
+      write: false
+    remove_comment:
+      class: ApiPlatform\Metadata\Delete
+      uriTemplate: '/comments/{id}'
+      controller: App\Controller\TreeInteractionController::removeComment
+      read: false
+      deserialize: false
+      validate: false
+      write: false
+      output: false
     

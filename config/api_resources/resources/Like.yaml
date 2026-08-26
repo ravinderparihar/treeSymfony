@@ -1,0 +1,14 @@
+App\Entity\Like:
+  normalizationContext:
+    groups: ['like:read']
+  denormalizationContext:
+    groups: ['like:write']
+  operations:
+    ApiPlatform\Metadata\GetCollection: ~
+    ApiPlatform\Metadata\Get: ~
+    ApiPlatform\Metadata\Post:
+      controller: App\Controller\TreeInteractionController::setLike
+      read: false
+      deserialize: false
+      validate: false
+      write: false

@@ -1,0 +1,10 @@
+App\Entity\Like:
+  attributes:
+    id:
+      groups: ['like:read']
+    type:
+      groups: ['like:read', 'like:write']
+    tree:
+      groups: ['like:read', 'like:write']
+    user:
+      groups: ['like:read', 'like:write']

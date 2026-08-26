@@ -82,4 +82,12 @@ App\Entity\Tree:
     categories:
       groups: ['tree:read']
       readableLink: true
+    likesCount:
+      groups: ['tree:read']
+    likedByCurrentUser:
+      groups: ['tree:read']
+    favoritedByCurrentUser:
+      groups: ['tree:read']
+    commentsCount:
+      groups: ['tree:read']
   

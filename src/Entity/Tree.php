@@ -49,6 +49,10 @@ class Tree
     public Collection $images;
     public Collection $localNames;
     public Collection $uses;
+    public int $likesCount = 0;
+    public bool $likedByCurrentUser = false;
+    public bool $favoritedByCurrentUser = false;
+    public int $commentsCount = 0;
     /**
      * @var Collection|Category[]
      */
@@ -67,6 +71,11 @@ class Tree
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCommentsCount(): int
+    {
+        return $this->commentsCount;
     }
 
     public function getScientificName(): ?string
