@@ -284,7 +284,7 @@ class Tree
 
     public function removeUses(Uses $uses): static
     {
-        if ($this->images->removeElement($uses)) {
+        if ($this->uses->removeElement($uses)) {
             if ($uses->getTree() === $this) {
                 $uses->setTree(null);
             }

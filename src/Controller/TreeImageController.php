@@ -25,9 +25,13 @@ class TreeImageController extends AbstractController
             ], 400);
         }
 
-       
+        if (!is_string($imageType) || $imageType === '') {
+            return $this->json([
+                'message' => 'imageType is required.'
+            ], 400);
+        }
 
-        $filename = uniqid() . '.' . $file->guessExtension();
+        $filename = uniqid() . '.' . ($file->guessExtension() ?? 'bin');
 
         $file->move(
             $params->get('tree_images_directory'),

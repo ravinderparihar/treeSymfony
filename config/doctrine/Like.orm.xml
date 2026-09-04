@@ -9,5 +9,8 @@
         <many-to-one field="user" target-entity="App\Entity\User">
             <join-column name="userId" referenced-column-name="id" nullable="false"/>
         </many-to-one>
+        <unique-constraints>
+            <unique-constraint name="UNIQ_LIKES_TREE_USER" columns="treeId,userId"/>
+        </unique-constraints>
     </entity>
 </doctrine-mapping>
