@@ -54,6 +54,11 @@ final class ResetPasswordController
         $resetToken->markUsed();
         $this->entityManager->flush();
 
+        // Invalidate any other outstanding reset links for this user.
+        $this->entityManager->createQuery(
+            'UPDATE App\Entity\PasswordResetToken t SET t.usedAt = :now WHERE t.user = :user AND t.usedAt IS NULL'
+        )->execute(['now' => new \DateTimeImmutable(), 'user' => $user]);
+
         return new JsonResponse(['message' => 'Password reset successfully.']);
     }
 }

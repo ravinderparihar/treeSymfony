@@ -7,6 +7,8 @@ use App\Entity\PasswordResetToken;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +26,7 @@ final class ForgotPasswordController
         private MailerInterface $mailer,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator,
+        private LoggerInterface $logger,
         private string $passwordResetUrl,
         private string $mailerFrom,
     ) {
@@ -53,6 +56,11 @@ final class ForgotPasswordController
             return new JsonResponse(['message' => $message]);
         }
 
+        // Only the most recent link should work: invalidate any outstanding tokens for this user.
+        $this->entityManager->createQuery(
+            'UPDATE App\Entity\PasswordResetToken t SET t.usedAt = :now WHERE t.user = :user AND t.usedAt IS NULL'
+        )->execute(['now' => new \DateTimeImmutable(), 'user' => $user]);
+
         $plainToken = Uuid::v4()->toRfc4122().bin2hex(random_bytes(16));
         $resetToken = new PasswordResetToken(
             $user,
@@ -70,8 +78,14 @@ final class ForgotPasswordController
             ->subject('Reset your password')
             ->text("Use this link to reset your password. It expires in 1 hour:\n\n{$resetLink}");
 
-        $this->mailer->send($email);
+        // Same status code and message on every path, including mail failures, so the
+        // response never reveals whether an account exists for the email.
+        try {
+            $this->mailer->send($email);
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error('Failed to send password reset email.', ['exception' => $e]);
+        }
 
-        return new JsonResponse(['message' => $message], Response::HTTP_ACCEPTED);
+        return new JsonResponse(['message' => $message]);
     }
 }
