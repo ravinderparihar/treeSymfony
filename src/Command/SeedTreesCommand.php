@@ -11,15 +11,22 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-#[AsCommand(name: 'app:seed-trees', description: 'Seed Himalayan trees with local names, uses and categories')]
+#[AsCommand(name: 'app:seed-trees', description: 'Seed trees from data/seed/*.php with local names, uses and categories')]
 class SeedTreesCommand extends Command
 {
-    private const LONG_TEXT_LIMIT = 255;
+    private const VARCHAR_LIMIT = 255;
+    private const NAME_LIMIT = 100;
+    private const VARCHAR_COLUMNS = [
+        'lifespan_min', 'lifespan_max', 'height_min', 'height_max', 'growth_rate', 'family_name', 'genus', 'species',
+        'temperature_range', 'rainfall_requirement', 'water_requirement', 'humidity', 'altitude_range', 'soil_ph',
+        'leaf_type', 'flowering_season', 'harvest_time', 'production_per_tree', 'seed_treatment', 'nursery_method',
+        'planting_distance', 'fertilizer_schedule', 'irrigation_schedule', 'pruning_guide',
+    ];
 
     public function __construct(
         private readonly Connection $connection,
-        #[Autowire('%kernel.project_dir%/data/seed/himalayan_trees.php')]
-        private readonly string $dataFile,
+        #[Autowire('%kernel.project_dir%/data/seed')]
+        private readonly string $dataDir,
     ) {
         parent::__construct();
     }
@@ -33,87 +40,18 @@ class SeedTreesCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $dryRun = (bool) $input->getOption('dry-run');
-        $data = require $this->dataFile;
-        $generic = $data['generic'];
+        $files = glob($this->dataDir . '/*.php');
+        sort($files);
 
         $this->connection->beginTransaction();
         try {
             $added = 0;
-            foreach ($data['trees'] as $t) {
-                if ($this->treeExists($t['sci'], $t['en'])) {
-                    $io->writeln("skip  {$t['en']} ({$t['sci']}) - already exists");
-                    continue;
-                }
-
-                $row = [
-                    'scientific_name' => $t['sci'],
-                    'description' => $t['desc'] . ' Commonly found in ' . $t['region'] . '.',
-                    'lifespan_min' => $t['life'][0],
-                    'lifespan_max' => $t['life'][1],
-                    'height_min' => $t['height'][0],
-                    'height_max' => $t['height'][1],
-                    'growth_rate' => $t['growth'],
-                    'status' => 1,
-                    'family_name' => $t['family'],
-                    'genus' => $t['genus'],
-                    'species' => $t['species'],
-                    'temperature_range' => $t['temp'],
-                    'rainfall_requirement' => $t['rain'],
-                    'water_requirement' => $t['water'],
-                    'humidity' => $t['humidity'],
-                    'altitude_range' => $t['alt'],
-                    'sandy_soil' => $t['soil'][0],
-                    'clay_soil' => $t['soil'][1],
-                    'loamy_soil' => $t['soil'][2],
-                    'soil_ph' => $t['ph'],
-                    'leaf_type' => $t['leaf'],
-                    'flowering_season' => $t['flower'],
-                    'harvest_time' => $t['harvest'],
-                    'production_per_tree' => $t['prod'],
-                    'seed_treatment' => $t['seed'],
-                    'nursery_method' => $t['nursery'] ?? $generic['nursery'],
-                    'planting_distance' => $t['spacing'],
-                    'fertilizer_schedule' => $t['fert'] ?? $generic['fert'],
-                    'irrigation_schedule' => $t['irrig'] ?? $generic['irrig'],
-                    'pruning_guide' => $t['prune'] ?? $generic['prune'],
-                    'common_diseases' => $t['diseases'],
-                    'common_insects' => $t['insects'],
-                    'symptoms' => $t['symptoms'],
-                    'treatment' => $t['treatment'],
-                ];
-                foreach (['seed_treatment', 'nursery_method', 'fertilizer_schedule', 'irrigation_schedule', 'pruning_guide', 'harvest_time'] as $column) {
-                    if (mb_strlen($row[$column]) > self::LONG_TEXT_LIMIT) {
-                        throw new \RuntimeException("{$t['en']}: $column is longer than " . self::LONG_TEXT_LIMIT . ' characters');
-                    }
-                }
-
-                $this->connection->insert('tree', $row);
-                $treeId = (int) $this->connection->lastInsertId();
-                $this->addLocalName($treeId, 'English', $t['en']);
-                $this->addLocalName($treeId, 'Hindi', $t['hi']);
-                foreach ($t['uses'] as [$title, $description]) {
-                    $this->connection->insert('uses', ['title' => $title, 'description' => $description, 'status' => 1, 'treeId' => $treeId]);
-                }
-                foreach ($t['categories'] as $category) {
-                    $this->connection->insert('tree_categories', ['tree_id' => $treeId, 'category_id' => $this->categoryId($category)]);
-                }
-
-                $io->writeln("add   {$t['en']} ({$t['sci']}) as #$treeId");
-                ++$added;
-            }
-
             $aliases = 0;
-            foreach ($data['aliases'] as $scientificName => $names) {
-                $treeIds = $this->connection->fetchFirstColumn('SELECT id FROM tree WHERE scientific_name = ?', [$scientificName]);
-                foreach ($treeIds as $treeId) {
-                    foreach ($names as [$language, $name]) {
-                        $exists = $this->connection->fetchOne('SELECT COUNT(*) FROM local_names WHERE treeId = ? AND localName = ?', [$treeId, $name]);
-                        if (!$exists) {
-                            $this->addLocalName((int) $treeId, $language, $name);
-                            ++$aliases;
-                        }
-                    }
-                }
+            foreach ($files as $file) {
+                $io->section(basename($file));
+                $data = require $file;
+                $added += $this->seedTrees($io, $data['trees'], $data['generic']);
+                $aliases += $this->seedAliases($data['aliases']);
             }
 
             if ($dryRun) {
@@ -133,6 +71,102 @@ class SeedTreesCommand extends Command
         return Command::SUCCESS;
     }
 
+    private function seedTrees(SymfonyStyle $io, array $trees, array $generic): int
+    {
+        $added = 0;
+        foreach ($trees as $t) {
+            if ($this->treeExists($t['sci'], $t['en'])) {
+                $io->writeln("skip  {$t['en']} ({$t['sci']}) - already exists");
+                continue;
+            }
+
+            $row = [
+                'scientific_name' => $t['sci'],
+                'description' => $t['desc'] . ' Commonly found in ' . $t['region'] . '.',
+                'lifespan_min' => $t['life'][0],
+                'lifespan_max' => $t['life'][1],
+                'height_min' => $t['height'][0],
+                'height_max' => $t['height'][1],
+                'growth_rate' => $t['growth'],
+                'status' => 1,
+                'family_name' => $t['family'],
+                'genus' => $t['genus'],
+                'species' => $t['species'],
+                'temperature_range' => $t['temp'],
+                'rainfall_requirement' => $t['rain'],
+                'water_requirement' => $t['water'],
+                'humidity' => $t['humidity'],
+                'altitude_range' => $t['alt'],
+                'sandy_soil' => $t['soil'][0],
+                'clay_soil' => $t['soil'][1],
+                'loamy_soil' => $t['soil'][2],
+                'soil_ph' => $t['ph'],
+                'leaf_type' => $t['leaf'],
+                'flowering_season' => $t['flower'],
+                'harvest_time' => $t['harvest'],
+                'production_per_tree' => $t['prod'],
+                'seed_treatment' => $t['seed'],
+                'nursery_method' => $t['nursery'] ?? $generic['nursery'],
+                'planting_distance' => $t['spacing'],
+                'fertilizer_schedule' => $t['fert'] ?? $generic['fert'],
+                'irrigation_schedule' => $t['irrig'] ?? $generic['irrig'],
+                'pruning_guide' => $t['prune'] ?? $generic['prune'],
+                'common_diseases' => $t['diseases'],
+                'common_insects' => $t['insects'],
+                'symptoms' => $t['symptoms'],
+                'treatment' => $t['treatment'],
+            ];
+            foreach (self::VARCHAR_COLUMNS as $column) {
+                $this->assertLength($row[$column], self::VARCHAR_LIMIT, "{$t['en']}: $column");
+            }
+            foreach ($t['uses'] as [$title]) {
+                $this->assertLength($title, self::NAME_LIMIT, "{$t['en']}: use title");
+            }
+
+            $this->connection->insert('tree', $row);
+            $treeId = (int) $this->connection->lastInsertId();
+            $this->addLocalName($treeId, 'English', $t['en']);
+            $this->addLocalName($treeId, 'Hindi', $t['hi']);
+            foreach ($t['uses'] as [$title, $description]) {
+                $this->connection->insert('uses', ['title' => $title, 'description' => $description, 'status' => 1, 'treeId' => $treeId]);
+            }
+            foreach ($t['categories'] as $category) {
+                $this->connection->insert('tree_categories', ['tree_id' => $treeId, 'category_id' => $this->categoryId($category)]);
+            }
+
+            $io->writeln("add   {$t['en']} ({$t['sci']}) as #$treeId");
+            ++$added;
+        }
+
+        return $added;
+    }
+
+    private function seedAliases(array $aliasesByScientificName): int
+    {
+        $added = 0;
+        foreach ($aliasesByScientificName as $scientificName => $names) {
+            $treeIds = $this->connection->fetchFirstColumn('SELECT id FROM tree WHERE scientific_name = ?', [$scientificName]);
+            foreach ($treeIds as $treeId) {
+                foreach ($names as [$language, $name]) {
+                    $exists = $this->connection->fetchOne('SELECT COUNT(*) FROM local_names WHERE treeId = ? AND localName = ?', [$treeId, $name]);
+                    if (!$exists) {
+                        $this->addLocalName((int) $treeId, $language, $name);
+                        ++$added;
+                    }
+                }
+            }
+        }
+
+        return $added;
+    }
+
+    private function assertLength(string $value, int $limit, string $label): void
+    {
+        if (mb_strlen($value) > $limit) {
+            throw new \RuntimeException("$label is longer than $limit characters");
+        }
+    }
+
     // Moru and Tilonj share a scientific name, so the English name is part of the identity.
     private function treeExists(string $scientificName, string $englishName): bool
     {
@@ -144,6 +178,7 @@ class SeedTreesCommand extends Command
 
     private function addLocalName(int $treeId, string $language, string $name): void
     {
+        $this->assertLength($name, self::NAME_LIMIT, "Local name $name");
         $this->connection->insert('local_names', ['language' => $language, 'localName' => $name, 'treeId' => $treeId]);
     }
 
