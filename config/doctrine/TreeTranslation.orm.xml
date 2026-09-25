@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+        <entity name="App\Entity\TreeTranslation" table="tree_translation">
+                <unique-constraints>
+                        <unique-constraint name="uniq_tree_translation_locale" columns="tree_id,locale"/>
+                </unique-constraints>
+
+                <id name="id" type="integer" column="id">
+                        <generator strategy="AUTO"/>
+                </id>
+
+                <field name="locale" type="string" length="10"/>
+                <field name="description" type="text" nullable="true"/>
+                <field name="temperatureRange" column="temperature_range" type="text" nullable="true"/>
+                <field name="rainfallRequirement" column="rainfall_requirement" type="text" nullable="true"/>
+                <field name="altitudeRange" column="altitude_range" type="text" nullable="true"/>
+                <field name="leafType" column="leaf_type" type="text" nullable="true"/>
+                <field name="floweringSeason" column="flowering_season" type="text" nullable="true"/>
+                <field name="harvestTime" column="harvest_time" type="text" nullable="true"/>
+                <field name="productionPerTree" column="production_per_tree" type="text" nullable="true"/>
+                <field name="seedTreatment" column="seed_treatment" type="text" nullable="true"/>
+                <field name="nurseryMethod" column="nursery_method" type="text" nullable="true"/>
+                <field name="plantingDistance" column="planting_distance" type="text" nullable="true"/>
+                <field name="fertilizerSchedule" column="fertilizer_schedule" type="text" nullable="true"/>
+                <field name="irrigationSchedule" column="irrigation_schedule" type="text" nullable="true"/>
+                <field name="pruningGuide" column="pruning_guide" type="text" nullable="true"/>
+                <field name="commonDiseases" column="common_diseases" type="text" nullable="true"/>
+                <field name="commonInsects" column="common_insects" type="text" nullable="true"/>
+                <field name="symptoms" type="text" nullable="true"/>
+                <field name="treatment" type="text" nullable="true"/>
+
+                <many-to-one field="tree" target-entity="App\Entity\Tree">
+                        <join-column name="tree_id" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+                </many-to-one>
+        </entity>
+
+</doctrine-mapping>

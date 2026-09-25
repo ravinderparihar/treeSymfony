@@ -22,6 +22,14 @@ class SeedTreesCommand extends Command
         'leaf_type', 'flowering_season', 'harvest_time', 'production_per_tree', 'seed_treatment', 'nursery_method',
         'planting_distance', 'fertilizer_schedule', 'irrigation_schedule', 'pruning_guide',
     ];
+    // Seed-file key => tree_translation / tree column
+    private const TRANSLATED_TREE_COLUMNS = [
+        'desc' => 'description', 'temp' => 'temperature_range', 'rain' => 'rainfall_requirement', 'alt' => 'altitude_range',
+        'leaf' => 'leaf_type', 'flower' => 'flowering_season', 'harvest' => 'harvest_time', 'prod' => 'production_per_tree',
+        'seed' => 'seed_treatment', 'nursery' => 'nursery_method', 'spacing' => 'planting_distance', 'fert' => 'fertilizer_schedule',
+        'irrig' => 'irrigation_schedule', 'prune' => 'pruning_guide', 'diseases' => 'common_diseases', 'insects' => 'common_insects',
+        'symptoms' => 'symptoms', 'treatment' => 'treatment',
+    ];
 
     public function __construct(
         private readonly Connection $connection,
@@ -49,17 +57,29 @@ class SeedTreesCommand extends Command
             $aliases = 0;
             foreach ($files as $file) {
                 $io->section(basename($file));
-                $data = require $file;
+                $data = self::load($file);
                 $added += $this->seedTrees($io, $data['trees'], $data['generic']);
                 $aliases += $this->seedAliases($data['aliases']);
             }
 
+            // Each sub-directory holds translations for one locale, e.g. data/seed/hi/
+            $translated = [];
+            foreach (glob($this->dataDir . '/*', GLOB_ONLYDIR) as $localeDir) {
+                $locale = basename($localeDir);
+                $io->section("Translations: $locale");
+                $translated[] = $this->seedTranslations($io, $locale, $localeDir);
+            }
+
+            $summary = "$added trees and $aliases local name aliases";
+            foreach ($translated as [$locale, $trees, $uses, $categories]) {
+                $summary .= "; $locale: $trees trees, $uses uses, $categories categories";
+            }
             if ($dryRun) {
                 $this->connection->rollBack();
-                $io->note("Dry run: would add $added trees and $aliases local name aliases. Nothing was written.");
+                $io->note("Dry run: would write $summary. Nothing was written.");
             } else {
                 $this->connection->commit();
-                $io->success("Added $added trees and $aliases local name aliases.");
+                $io->success("Wrote $summary.");
             }
         } catch (\Throwable $e) {
             if ($this->connection->isTransactionActive()) {
@@ -160,6 +180,99 @@ class SeedTreesCommand extends Command
         return $added;
     }
 
+    /**
+     * Replaces the stored translations for every tree, use and category listed in $localeDir/*.php.
+     * A field left out of a translated tree falls back to the translated 'generic' text only when the English
+     * tree also uses the English generic text; otherwise it is reported so no English-only detail goes unnoticed.
+     *
+     * @return array{string, int, int, int}
+     */
+    private function seedTranslations(SymfonyStyle $io, string $locale, string $localeDir): array
+    {
+        $trees = $uses = $categories = 0;
+        $warnings = [];
+        $files = glob($localeDir . '/*.php');
+        sort($files);
+
+        foreach ($files as $file) {
+            $data = self::load($file);
+            $englishFile = $this->dataDir . '/' . basename($file);
+            $englishGeneric = is_file($englishFile) ? self::load($englishFile)['generic'] : [];
+            $generic = $data['generic'] ?? [];
+
+            foreach ($data['categories'] ?? [] as $englishName => $name) {
+                $categoryId = $this->connection->fetchOne('SELECT id FROM category WHERE name = ?', [$englishName]);
+                if (false === $categoryId) {
+                    $warnings[] = "Category $englishName not found";
+                    continue;
+                }
+                $this->assertLength($name, self::NAME_LIMIT, "Category $englishName ($locale)");
+                $this->connection->delete('category_translation', ['category_id' => $categoryId, 'locale' => $locale]);
+                $this->connection->insert('category_translation', ['category_id' => $categoryId, 'locale' => $locale, 'name' => $name]);
+                ++$categories;
+            }
+
+            foreach ($data['trees'] as $t) {
+                $treeId = $this->treeId($t['sci'], $t['en']);
+                if (null === $treeId) {
+                    $warnings[] = "{$t['en']} ({$t['sci']}) not found";
+                    continue;
+                }
+
+                $english = $this->connection->fetchAssociative('SELECT * FROM tree WHERE id = ?', [$treeId]);
+                $row = ['tree_id' => $treeId, 'locale' => $locale];
+                foreach (self::TRANSLATED_TREE_COLUMNS as $key => $column) {
+                    $value = $t[$key] ?? null;
+                    if (null === $value && null !== $english[$column] && '' !== $english[$column]) {
+                        if (isset($generic[$key], $englishGeneric[$key]) && $english[$column] === $englishGeneric[$key]) {
+                            $value = $generic[$key];
+                        } else {
+                            $warnings[] = "{$t['en']}: $column has no $locale text";
+                        }
+                    }
+                    $row[$column] = $value;
+                }
+                $this->connection->delete('tree_translation', ['tree_id' => $treeId, 'locale' => $locale]);
+                $this->connection->insert('tree_translation', $row);
+                ++$trees;
+
+                $translatedUses = $t['uses'] ?? [];
+                foreach ($this->connection->fetchAllKeyValue('SELECT id, title FROM uses WHERE treeId = ?', [$treeId]) as $usesId => $englishTitle) {
+                    if (!isset($translatedUses[$englishTitle])) {
+                        $warnings[] = "{$t['en']}: use \"$englishTitle\" has no $locale text";
+                        continue;
+                    }
+                    [$title, $description] = $translatedUses[$englishTitle];
+                    $this->assertLength($title, self::NAME_LIMIT, "{$t['en']}: use title ($locale)");
+                    $this->connection->delete('uses_translation', ['uses_id' => $usesId, 'locale' => $locale]);
+                    $this->connection->insert('uses_translation', ['uses_id' => $usesId, 'locale' => $locale, 'title' => $title, 'description' => $description]);
+                    ++$uses;
+                }
+            }
+        }
+
+        $untranslated = $this->connection->fetchFirstColumn(
+            "SELECT CONCAT(t.id, ' ', t.scientific_name) FROM tree t LEFT JOIN tree_translation tt ON tt.tree_id = t.id AND tt.locale = ? WHERE tt.id IS NULL",
+            [$locale],
+        );
+        foreach ($untranslated as $tree) {
+            $warnings[] = "Tree #$tree has no $locale translation";
+        }
+
+        $io->writeln("$locale: $trees trees, $uses uses, $categories categories");
+        if ($warnings) {
+            $io->warning($warnings);
+        }
+
+        return [$locale, $trees, $uses, $categories];
+    }
+
+    // Seed files define helper variables such as $trees and $generic; keep them out of the caller's scope.
+    private static function load(string $file): array
+    {
+        return require $file;
+    }
+
     private function assertLength(string $value, int $limit, string $label): void
     {
         if (mb_strlen($value) > $limit) {
@@ -170,10 +283,17 @@ class SeedTreesCommand extends Command
     // Moru and Tilonj share a scientific name, so the English name is part of the identity.
     private function treeExists(string $scientificName, string $englishName): bool
     {
-        return (bool) $this->connection->fetchOne(
-            'SELECT COUNT(*) FROM tree t JOIN local_names n ON n.treeId = t.id WHERE t.scientific_name = ? AND n.language = ? AND n.localName = ?',
+        return null !== $this->treeId($scientificName, $englishName);
+    }
+
+    private function treeId(string $scientificName, string $englishName): ?int
+    {
+        $id = $this->connection->fetchOne(
+            'SELECT t.id FROM tree t JOIN local_names n ON n.treeId = t.id WHERE t.scientific_name = ? AND n.language = ? AND n.localName = ? ORDER BY t.id',
             [$scientificName, 'English', $englishName],
         );
+
+        return false === $id ? null : (int) $id;
     }
 
     private function addLocalName(int $treeId, string $language, string $name): void
